@@ -1,0 +1,19 @@
+<div class="right" id="testAdd">
+  <div style="margin: 30px">
+    <iframe
+      width="960"
+      height="720"
+      src="https://us-east-1.quicksight.aws.amazon.com/sn/embed/share/accounts/381492146542/dashboards/2cc96e39-1757-4218-9a81-66d17f88625d?directory_alias=scarecrow-c6"
+    >
+    </iframe>
+  </div>
+</div>
+
+$("#nav").on("click", "a", function (e) { e.preventDefault(); $(this)
+.parents("#nav") .find(".active") .removeClass("active") .end() .end()
+.addClass("active"); $("#testAdd").html( '
+<div class="form-group add-input">
+  <input type="text" placeholder="add someting..." />
+  <button class="add">+</button>
+</div>
+' ); // $(activeTab).show(); });

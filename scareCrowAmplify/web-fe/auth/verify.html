@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ScareCrow - Verify Email</title>
+    <!-- Favicons -->
+    <link href="../assets/favicon.png" rel="icon" />
+    <link href="../assets/favicon.png" rel="apple-touch-icon" />
+    <link rel="stylesheet" href="../css/styles.css" />
+  </head>
+
+  <body>
+    <div id="main">
+      <div class="left">
+        <div class="logo">
+          <h3 style="font-size: 14px; text-align: center">
+            <img
+              src="../assets/sc-icon.png"
+              style="width: 100px; height: 100px"
+            />
+          </h3>
+        </div>
+        <div style="position: absolute; bottom: 10px; left: 30%">
+          <h3 style="font-size: 14px; text-align: center; color: #888">
+            Need help?
+          </h3>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="bg-img">
+          <img src="../assets/bg_img2.jpg" />
+        </div>
+        <div class="data">
+          <div id="id01" class="modal">
+            <form class="modal-content" id="verifyForm" method="post">
+              <div class="container-form">
+                <label style="font-size: larger; font-weight: bolder"
+                  ><b>Verify Email</b></label
+                ><br /><br /><br /><br />
+                <label for="email"><b>Email Address</b></label>
+                <input
+                  type="email"
+                  id="emailInputVerify"
+                  placeholder="Enter Email Address"
+                  name="email"
+                  required
+                />
+                <br /><br />
+
+                <label for="code"><b>Verification Code</b></label>
+                <input
+                  type="text"
+                  id="codeInputVerify"
+                  placeholder="Enter Verification Code"
+                  name="verify"
+                  required
+                />
+                <br /><br />
+
+                <button type="submit">Verify</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="../js/vendor/jquery-3.1.0.js"></script>
+    <script src="../js/vendor/bootstrap.min.js"></script>
+    <script src="../js/vendor/aws-cognito-sdk.min.js"></script>
+    <script src="../js/vendor/amazon-cognito-identity.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/cognito-auth.js"></script>
+  </body>
+</html>

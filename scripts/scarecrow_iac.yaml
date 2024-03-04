@@ -1,0 +1,434 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template for creating Amplify app with Serverless Framework configurations
+
+Parameters:
+  ParentStackName:
+    Type: String
+    Default: Scarecrow_IaC
+  Repository:
+    Description: "The Codecommit repository that contains the code for our application."
+    Type: String
+    Default: "https://git-codecommit.us-east-1.amazonaws.com/v1/repos/scarecrow_repo"
+  RegionScope:
+    Type: String
+    Default: CLOUDFRONT
+
+Resources:
+  ScareCrowFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: "ScareCrowFunction"
+      Handler: lambda_function.lambda_handler
+      Role: arn:aws:iam::381492146542:role/ScareCrow_lambda_2024
+      Code:
+        S3Bucket: scare-test
+        S3Key: send_payload.zip
+      Runtime: python3.10
+      Timeout: 60
+      MemorySize: 128
+
+  MyIoTTopic:
+    Type: "AWS::IoT::TopicRule"
+    DependsOn: ReceivePayloadFunction
+    Properties:
+      RuleName: "ScarecrowFarmPest"
+      TopicRulePayload:
+        Sql: 'SELECT * FROM "ScarecrowFarmPest"'
+        Actions:
+          - Lambda:
+              FunctionArn: !GetAtt ReceivePayloadFunction.Arn
+
+  MyEventRule:
+    Type: "AWS::Events::Rule"
+    DependsOn:
+      - ScareCrowFunction
+      - ReceivePayloadFunction
+    Properties:
+      Name: LambdaEventRule
+      ScheduleExpression: "rate(1 minute)"
+      State: "ENABLED"
+      Targets:
+        - Arn: !GetAtt ScareCrowFunction.Arn
+          Id: "TargetFunction"
+
+  ScareCrowLambdaRole:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt ScareCrowFunction.Arn
+      Principal: events.amazonaws.com
+
+  ReceivePayloadFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: "receive-payload"
+      Handler: lambda_function.lambda_handler
+      Role: arn:aws:iam::381492146542:role/service-role/c-inferenceData-to-dynamoDb-test-role-li5nwwix
+      Code:
+        S3Bucket: scare-test
+        S3Key: receive_payload.zip
+      Runtime: python3.10
+      Timeout: 60
+      MemorySize: 128
+
+  ReceivePayloadLambdaRole:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt ReceivePayloadFunction.Arn
+      Principal: iot.amazonaws.com
+      SourceArn: !Sub arn:aws:iot:us-east-1:381492146542:rule/ScarecrowFarmPest
+
+  ScareTestsTable:
+    Type: "AWS::DynamoDB::Table"
+    Properties:
+      TableName: "scaretests"
+      AttributeDefinitions:
+        - AttributeName: "farmID"
+          AttributeType: "S"
+        - AttributeName: "datetime"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "farmID"
+          KeyType: "HASH"
+        - AttributeName: "datetime"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  # AWS Amplify App
+  MyAmplifyApp:
+    Type: AWS::Amplify::App
+    Properties:
+      Description: "Deploys Scarecrow app from codecommit repo"
+      IAMServiceRole: Scarecrow_Amplify_codecommit
+      Name: Scarecrow_IaC_Amplifyapp_final
+      Platform: WEB
+      Repository: !Ref Repository
+      EnvironmentVariables:
+        - Name: AMPLIFY_MONOREPO_APP_ROOT
+          Value: scareCrowAmplify
+        - Name: AMPLIFY_DIFF_DEPLOY
+          Value: false
+        - Name: AMPLIFY_USERPOOL_ID
+          Value: us-east-1_IxdflEuXq
+      Tags:
+        - Key: CreatedBy
+          Value: "Cohort_6"
+
+  AmplifyBranch:
+    Type: AWS::Amplify::Branch
+    DependsOn: MyAmplifyApp
+    Properties:
+      AppId: !GetAtt MyAmplifyApp.AppId
+      BranchName: master
+      Description: Application branch
+      Stage: PRODUCTION
+
+  AmplifyDomain:
+    Type: AWS::Amplify::Domain
+    DependsOn: MyAmplifyApp
+    Properties:
+      AppId: !GetAtt MyAmplifyApp.AppId
+      AutoSubDomainIAMRole: arn:aws:iam::381492146542:role/Scarecrow_Amplify_codecommit
+      DomainName: scarecrow.tspace.uk
+      SubDomainSettings:
+        - Prefix: "www"
+          BranchName: master
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    DependsOn: MyAmplifyApp
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultCacheBehavior:
+          TargetOriginId: "amplifyOrigin"
+          ForwardedValues:
+            QueryString: false
+          ViewerProtocolPolicy: redirect-to-https
+        CustomOrigin:
+          DNSName: !Sub "${MyAmplifyApp.DefaultDomain}"
+          HTTPPort: 80
+          HTTPSPort: 443
+          OriginProtocolPolicy: https-only
+          OriginSSLProtocols:
+            - SSLv3
+            - TLSv1
+            - TLSv1.1
+            - TLSv1.2
+        WebACLId: !GetAtt WAFWebACL.Arn
+      Tags:
+        - Key: CreatedBy
+          Value: Cohort6
+
+  WAFWebACL:
+    Type: "AWS::WAFv2::WebACL"
+    Properties:
+      Name: Scarecrow-WAF-ACL
+      Scope: CLOUDFRONT
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: Scarecrow-WAF-ACL
+        SampledRequestsEnabled: true
+      Rules:
+        - Name: AWSManagedWafRule1
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAmazonIpReputationList
+          Priority: 1
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedWafRule1
+            SampledRequestsEnabled: true
+        - Name: AWSManagedWafRule2
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesSQLiRuleSet
+          Priority: 2
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedWafRule2
+            SampledRequestsEnabled: true
+      Description: Web-ACL with AWS managed rules
+
+  ApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: QuickSightApi
+
+  ApiGatewayResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: "query"
+
+  ApiGatewayMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${QuickSightLambdaFunction.Arn}/invocations
+
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: ApiGatewayMethod
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      StageName: prod
+  QuickSightLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt QuickSightLambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import json
+
+          def handler(event, context):
+              quicksight = boto3.client('quicksight')
+
+              # Your code to interact with QuickSight
+              params = {
+                  # Specify your parameters for querying QuickSight
+              }
+
+              try:
+                  response = quicksight.your_quick_sight_method(**params)
+                  return {
+                      'statusCode': 200,
+                      'body': json.dumps(response)
+                  }
+              except Exception as e:
+                  return {
+                      'statusCode': 500,
+                      'body': json.dumps({'error': str(e)})
+                  }
+
+      Runtime: python3.12
+
+  QuickSightLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: QuickSightLambdaExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - quicksight:*
+                Resource: "*"
+
+  scarecrowLogsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: scarecrowlogs-14
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 365
+      LogGroupName: !Sub "/${AWS::StackName}/logs"
+
+  CloudWatchLogsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CloudWatchLogsRole
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - logs.amazonaws.com
+                - cloudtrail.amazonaws.com
+            Action:
+              - sts:AssumeRole
+
+  CloudWatchLogsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CloudWatchLogsPutLogsPolicy
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - logs:PutLogEvents
+              - logs:CreateLogStream
+            Resource: !Sub "arn:aws:s3:::${scarecrowLogsBucket}/*"
+      Roles:
+        - !Ref CloudWatchLogsRole
+
+  CloudTrailLogsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: cloudtrail.amazonaws.com
+  CloudTrailLogsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:PutLogEvents
+              - logs:CreateLogStream
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - LogGroup
+                - Arn
+      PolicyName: DefaultPolicy
+      Roles:
+        - Ref: CloudTrailLogsRole
+
+  CloudTrail:
+    Type: AWS::CloudTrail::Trail
+    Properties:
+      S3BucketName: !Ref scarecrowLogsBucket
+      IsLogging: true
+      CloudWatchLogsLogGroupArn:
+        Fn::GetAtt:
+          - LogGroup
+          - Arn
+      CloudWatchLogsRoleArn:
+        Fn::GetAtt:
+          - CloudTrailLogsRole
+          - Arn
+    DependsOn:
+      - CloudTrailLogsPolicy
+      - CloudTrailLogsRole
+
+  LogBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref scarecrowLogsBucket
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "cloudtrail.amazonaws.com"
+            Action: "s3:GetBucketAcl"
+            Resource: !Sub "arn:aws:s3:::${scarecrowLogsBucket}"
+          - Effect: Allow
+            Principal:
+              Service: "cloudtrail.amazonaws.com"
+            Action: "s3:PutObject"
+            Resource: !Sub "arn:aws:s3:::${scarecrowLogsBucket}/*"
+          - Effect: Deny
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "arn:aws:s3:::${scarecrowLogsBucket}/*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": false
+
+Outputs:
+  ScareCrowLambdaRoleArn:
+    Value: arn:aws:iam::381492146542:role/ScareCrow_lambda_2024
+    Description: ARN of the existing IAM role for ScareCrowFunction
+
+  ReceivePayloadLambdaRoleArn:
+    Value: arn:aws:iam::381492146542:role/service-role/c-inferenceData-to-dynamoDb-test-role-li5nwwix
+    Description: ARN of the existing IAM role for ReceivePayloadFunction
+
+  AmplifyAppID:
+    Description: Amplify App ID
+    Export:
+      Name: scarecrow-group
+    Value: !GetAtt MyAmplifyApp.AppId
+
+  AmplifyAppArn:
+    Description: Amplify App Arn
+    Export:
+      Name: scarecrow-arn
+    Value: !GetAtt MyAmplifyApp.Arn
+
+  AmplifyAppDefaultDomain:
+    Description: Amplify App Default Domain
+    Export:
+      Name: scarecrow-defaultdomain
+    Value: !GetAtt MyAmplifyApp.DefaultDomain
+
+  AmplifyAppBranchName:
+    Description: Amplify App Branch Name
+    Export:
+      Name: scare
+    Value: !GetAtt AmplifyBranch.BranchName
+
+  CloudFrontDomainName:
+    Value: !GetAtt CloudFrontDistribution.DomainName
+    Description: "Domain name of the CloudFront distribution"
+
+  WAFWebACLId:
+    Value: !Ref WAFWebACL
+    Description: "ID of the WAF Web ACL"
+
+  WAFWebACLArn:
+    Value: !GetAtt WAFWebACL.Arn

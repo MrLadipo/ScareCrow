@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ScareCrow - Sign up</title>
+    <!-- Favicons -->
+    <link href="../assets/favicon.png" rel="icon" />
+    <link href="../assets/favicon.png" rel="apple-touch-icon" />
+    <link rel="stylesheet" href="../css/styles.css" />
+  </head>
+
+  <body>
+    <div id="main">
+      <div class="left">
+        <div class="logo">
+          <h3 style="font-size: 14px; text-align: center">
+            <img
+              src="../assets/sc-icon.png"
+              style="width: 100px; height: 100px"
+            />
+          </h3>
+        </div>
+        <div style="position: absolute; bottom: 10px; left: 30%">
+          <h3 style="font-size: 14px; text-align: center; color: #888">
+            Need help?
+          </h3>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="bg-img">
+          <img src="../assets/bg_img2.jpg" />
+        </div>
+        <div class="data">
+          <div id="id01" class="modal">
+            <form class="modal-content" id="registrationForm" method="post">
+              <div class="container-form">
+                <label><b>Farm Name</b></label>
+                <input
+                  type="text"
+                  placeholder="Enter Farm Name"
+                  id="farm_name"
+                  required
+                />
+                <br /><br />
+
+                <label><b>Email Address</b></label>
+                <input
+                  type="email"
+                  id="emailInputRegister"
+                  placeholder="Enter Email Address"
+                  required
+                />
+                <br /><br />
+
+                <label><b>Address</b></label>
+                <input
+                  type="text"
+                  placeholder="Enter Farm Address"
+                  id="address"
+                  required
+                />
+                <br /><br />
+
+                <label><b>Country</b></label>
+                <div class="custom-select">
+                  <select id="country" id="country" class="form-control">
+                    <option value="">Select Country</option>
+                    <option value="nigeria">Nigeria</option>
+                    <option value="kenya">Kenya</option>
+                    <option value="ghana">Ghana</option>
+                    <option value="zambia">Zambia</option>
+                    <option value="algeria">Algeria</option>
+                    <option value="s_africa">South Africa</option>
+                  </select>
+                </div>
+                <br />
+
+                <label><b>Phone Number</b></label>
+                <input
+                  type="text"
+                  placeholder="Enter Phone Number"
+                  id="phone"
+                  required
+                  value="AA"
+                />
+                <br />
+
+                <label><b>Password</b></label>
+                <input
+                  type="password"
+                  id="passwordInputRegister"
+                  placeholder="Enter Password"
+                  name="psw"
+                  required
+                />
+
+                <label><b>Confirm Password</b></label>
+                <input
+                  type="password"
+                  id="password2InputRegister"
+                  placeholder="Confirm Password"
+                  name="psw"
+                  required
+                />
+
+                <button type="submit">Register</button>
+
+                <br /><br />
+                <label
+                  >Aleady have an account?
+                  <b><a href="login.html">Login</a></b></label
+                >
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="../js/vendor/jquery-3.1.0.js"></script>
+    <script src="../js/vendor/bootstrap.min.js"></script>
+    <script src="../js/vendor/aws-cognito-sdk.min.js"></script>
+    <script src="../js/vendor/amazon-cognito-identity.min.js"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/cognito-auth.js"></script>
+  </body>
+</html>

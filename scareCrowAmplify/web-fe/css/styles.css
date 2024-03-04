@@ -1,0 +1,229 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+}
+
+/* Full-width input fields */
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.custom-select {
+  min-width: 350px;
+  position: relative;
+}
+
+select {
+  appearance: none;
+  /*  safari  */
+  -webkit-appearance: none;
+  /*  other styles for aesthetics */
+  width: 100%;
+  margin: 8px 0;
+  padding: 12px 20px;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.custom-select::before,
+.custom-select::after {
+  --size: 0.3rem;
+  content: "";
+  position: absolute;
+  right: 1rem;
+  pointer-events: none;
+}
+
+.custom-select::before {
+  border-left: var(--size) solid transparent;
+  border-right: var(--size) solid transparent;
+  border-bottom: var(--size) solid black;
+  top: 40%;
+}
+
+.custom-select::after {
+  border-left: var(--size) solid transparent;
+  border-right: var(--size) solid transparent;
+  border-top: var(--size) solid black;
+  top: 55%;
+}
+
+/* Set a style for all buttons */
+button {
+  border-radius: 6px;
+  background-color: #04aa6d;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+.container-form {
+  padding: 16px;
+}
+
+span.psw,
+span.country {
+  float: right;
+  padding-top: 16px;
+}
+
+/* The Modal (background) */
+.modal {
+  display: block; /* Hidden by default */
+  /* position: fixed; Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: auto; /* Full width */
+  height: 410px; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  padding-top: 20px;
+}
+
+/* Modal Content Box */
+.modal-content {
+  background-color: #fefefe;
+  margin: 3% auto 5% auto; /* 3% from the top, 5% from the bottom and centered */
+  width: 96%; /* Could be more or less, depending on screen size */
+}
+
+/* Change styles for span and cancel button on extra small screens */
+@media screen and (max-width: 300px) {
+  span.psw {
+    display: block;
+    float: none;
+  }
+}
+
+/* The main container div */
+#main {
+  padding: 1%;
+  margin: 0;
+  width: 98%;
+  height: 550px;
+  background-color: #f2f2f2;
+}
+
+/* Position the left div housing the logo*/
+.left {
+  width: 15%;
+  height: 80%;
+  float: left;
+  background-color: #04293a;
+  border-radius: 15px 0 0 15px;
+  padding-bottom: 80px;
+  position: relative;
+}
+
+/* Logo section */
+.logo {
+  width: 100px;
+  height: 100px;
+  margin: auto;
+  margin-top: 40px;
+  border-radius: 12px;
+  /* background-color: #04AA6D; */
+}
+
+/* Position the right div housing the image and form*/
+.right {
+  width: 85%;
+  height: 80%;
+  float: right;
+  background-color: #ffffff;
+  border-radius: 0 15px 0 0;
+  padding-top: 80px;
+}
+
+/* div housing the image */
+.bg-img {
+  width: 45.6%;
+  height: 100%;
+  float: left;
+}
+
+/* Style the image */
+.bg-img img {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* div housing the form */
+.data {
+  width: 54%;
+  height: 100%;
+  float: right;
+  border: 1px dotted #999;
+  box-shadow: -1px -1px grey;
+  border-radius: 0 12px 0 12px;
+}
+
+p.item a {
+  font-size: larger;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-weight: bolder;
+  color: #fefefe;
+  text-decoration: none;
+}
+
+a {
+  color: #999;
+  text-decoration: none;
+}
+
+body {
+  margin: 0;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+li a {
+  display: block;
+  color: #000;
+  padding: 8px 16px;
+  font-size: large;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-weight: bolder;
+  color: #fefefe;
+  text-decoration: none;
+  border-radius: 4px;
+  margin: 3px;
+}
+
+a.active {
+  background-color: #81848c;
+  color: white;
+}
+
+li a:hover:not(.active) {
+  background-color: #555;
+  color: white;
+}
+/* 
+a.active
+{
+    background-color: #EAB126;
+} */
