@@ -14,6 +14,4 @@ Data Visualization: Provides farmers with interactive dashboards and visualizati
 User Authentication with AWS Cognito: Implements secure user authentication and authorization using AWS Cognito for accessing the application.
 Data Storage with AWS DynamoDB: Utilizes AWS DynamoDB to store and manage farm data efficiently and securely.
 
-### License
 
-This project is licensed under the CIL Academy.
